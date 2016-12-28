@@ -42,7 +42,7 @@ void	readParameters(){
         string			tmpIn, buf;
 	vector<string>	tokens;
 	ifstream inFile;
-	inFile.open("ft_input_parameters.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_parameters.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_parameters.dat";
 		exit(1);
@@ -134,7 +134,7 @@ void	readParameters(){
 	    }
         }else{
             numThreads = 1;
-            cout <<"It seems that multithreading is not available for stochastic assignment!\n DEFAULT VALUE OF 1 IS BEING USED FOR THE NUMBER OF THREADS!"<<endl;
+            cout <<"DEFAULT VALUE OF 1 IS BEING USED FOR THE NUMBER OF THREADS!"<<endl;
         }
         if(pathModelFlag!=1){
             numThreads = 1;
@@ -146,7 +146,7 @@ void	readRouteChoiceModel(){
 	string			tmpIn, buf;
 	vector<string>	tokens;
 	ifstream inFile;
-	inFile.open("ft_input_routeChoice.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_routeChoice.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_routeChoice.dat";
 		exit(1);
@@ -176,17 +176,17 @@ void	readRouteChoiceModel(){
 	theta = atof(tokens[9].c_str());
 	capacityConstraint = atoi(tokens[10].c_str());
 
-	railInVehTimeEqv = atoi(tokens[11].c_str());
+	//railInVehTimeEqv = atoi(tokens[11].c_str());
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-void		passengerAssignment(){
-	string				tmpIn, buf;
+void	passengerAssignment(){
+	string			tmpIn, buf;
 	vector<string>		tokens;
-	int					numAssignedPassengers, numArrivedPassengers, numMissedPassengers;
-	double				capacityGap, tmpAssignmentTime, tmpSimulationTime;
-
+	int			numAssignedPassengers, numArrivedPassengers, numMissedPassengers;
+	double		        capacityGap, tmpAssignmentTime, tmpSimulationTime;
 	ofstream		outFile;
-	outFile.open("ft_output_runStatistics.dat");
+        vector<int> container;
+	outFile.open("C:/FastTripsScripts/Input Data/ft_output_runStatistics.dat");
 	outFile <<"******************************* SUMMARY ****************************************"<<endl;
 
     for(int iter=1;iter<=iterationFlag;iter++){
@@ -197,13 +197,15 @@ void		passengerAssignment(){
         numArrivedPassengers = 0;
         numMissedPassengers = 0;
 
-        if(pathModelFlag == 0){
-            numAssignedPassengers = readExistingPaths();
+       if(pathModelFlag == 0){
+           numAssignedPassengers = readExistingPaths();
         }else if(pathModelFlag==1){
             numAssignedPassengers = disaggregateDeterministicAssignment(iter, pathTimeBuffer, numThreads);
         }else if(pathModelFlag==2){
             //numAssignedPassengers = disaggregateStochasticAssignment(iter, pathTimeBuffer, numThreads);
-            numAssignedPassengers = pathBasedStochasticAssignment(iter, pathTimeBuffer, printPassengersFlag, numThreads);
+            //numAssignedPassengers = pathBasedStochasticAssignment(iter, pathTimeBuffer, printPassengersFlag, numThreads);
+            container=pathBasedStochasticAssignment(iter, pathTimeBuffer, printPassengersFlag, numThreads);
+            numAssignedPassengers=container[0];
         }
 
         if(simulationFlag==1){
@@ -230,7 +232,10 @@ void		passengerAssignment(){
 			break;
 		}
     }
-
+    cout<<container[1]<<"no taz label"<<endl;
+    cout<<container[2]<<"no elementary path"<<endl;
+    cout<<container[3]<<"tmppath is 101"<<endl;
+    
     cout <<"**************************** WRITING OUTPUTS ****************************"<<endl;
     printLoadProfile();
 

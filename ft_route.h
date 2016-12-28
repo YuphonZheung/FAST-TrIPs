@@ -35,15 +35,15 @@ protected:
 	string						routeId;
 	string						routeShortName;
 	string						routeLongName;
-	int							routeType;
-	vector<string>				routeTrips;
+	int						routeType;
+	vector<string>				        routeTrips;
 public:
 	route(){}
 	~route(){}
 	int							initializeRoute(string _tmpIn);
-	void						attachTrip(string _tripId);
+	void						        attachTrip(string _tripId);
 	int							getNumTrips();
-	string						getTripId(int _i);
+	string						        getTripId(int _i);
 	int							getRouteType();
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ int		readRoutes(){
 	vector<string>	tokens;
 
 	ifstream inFile;
-	inFile.open("ft_input_routes.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_routes.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_routes.dat";
 		exit(1);

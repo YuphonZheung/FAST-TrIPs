@@ -38,7 +38,7 @@ using namespace std;
 double		inVehTimeEqv, waitingEqv, originWalkEqv, destinationWalkEqv, transferWalkEqv, transferPenalty, scheduleDelayEqv, fare, VOT, theta, capacityConstraint,
 			railInVehTimeEqv;
 
-map<string,double>		availableCapacity;
+map<string,double>	availableCapacity;
 map<string,int>		availableCapacity2;
 
 string getTime(){
@@ -65,11 +65,11 @@ protected:
 	vector<string>			stopTransfers;
 	vector<double>			stopTransferDists;
 	vector<double>			stopTransferTimes;
-	set<string>				stopRouteSet;
+	set<string>			stopRouteSet;
 	vector<string>			stopRoutes;
 	vector<string>			stopDirections;
 	vector<string>			stopTrips;
-	vector<int>				stopSequences;
+	vector<int>			stopSequences;
 	vector<double>			stopSchArrivals;
 	vector<double>			stopSchDepartures;
 
@@ -110,11 +110,11 @@ public:
 
 	//For TBSP
 	string				getStopId();
-	int					getNumRoutes();
-	int					getNumTrips();
+	int				getNumRoutes();
+	int				getNumTrips();
 	double				getPrevTripDeparture(string _route, string _dir, double _time);
-	int					getTransferStop();
-	int					getNumTransfers();
+	int				getTransferStop();
+	int				getNumTransfers();
 	void				parallelize(int _numThreads);
 	void				resetStop(int _threadId);
 	void				forwardUpdate(double _label, double _arrival, string _arrivalMode, string _predecessor, int _threadId);
@@ -128,7 +128,7 @@ public:
 	string				getForwardAccessibleTrips(double _arrival, int _timeBuffer);
 	string				getBackwardAccessibleTrips(double _departure, int _timeBuffer);
 	void				setPermanentLabel(int _label, int _threadId);
-	int					getPermanentLabel(int _threadId);
+	int				getPermanentLabel(int _threadId);
 	string				getTaz();
 	string				printPath(int _threadId);
 
@@ -142,7 +142,7 @@ public:
 	double				getStrategyEarliestDeparture();
 	double				getStrategyLatestDeparture();
 	void				setStrategyPermanentLabel();
-	int					getStrategyPermanentLabel();
+	int				getStrategyPermanentLabel();
 	double				getForwardNonWalkLabel();
 	double				getBackwardNonWalkLabel();
 	string				getForwardAssignedAlternative(double _departureTime, string _lastTrip);
@@ -156,7 +156,7 @@ public:
 
 	//For Simulation
 	void				resetStopForSimulation();
-	int					getNoOfWaitingPassenegrs();
+	int				getNoOfWaitingPassenegrs();
 	void				addPassenger(string _passengerId);
 	void				removePassenger(int _passCntr);
 	string				getPassengerId(int _passCntr);
@@ -164,7 +164,7 @@ public:
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 map<string,stop*>					stopSet;
-list<stop*>							stopList;
+list<stop*>						stopList;
 map<string,double>					transferTimes;
 
 int			readStops();
@@ -176,11 +176,11 @@ int		readStops(){
     cout <<"reading stops:\t\t\t";
     
 	string			tmpIn, tmpStopId, buf;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 	stop*			tmpStopPntr;
 
 	ifstream inFile;
-	inFile.open("ft_input_stops.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_stops.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_stops.dat";
 		exit(1);
@@ -215,12 +215,12 @@ int		readTransfers(){
 	vector<string>	tokens;
 
 	ifstream inFile;
-	inFile.open("ft_input_transfers.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_transfers.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_transfers.dat";
 		exit(1);   // call system to stop
 	}
-	//getline(inFile,tmpIn);
+	getline(inFile,tmpIn);
 	numTransfers = 0;
 	while (!inFile.eof()){
 		buf.clear();
@@ -243,8 +243,8 @@ int		readTransfers(){
 int		defineTransferStops(){
     cout <<"defining transfer stops:\t";
 
-        int						tmpNumRoutes, tmpNumTransfers, numTransferStops;
-	list<stop*>::iterator	tmpStopListIter;
+        int					tmpNumRoutes, tmpNumTransfers, numTransferStops;
+	list<stop*>::iterator	                tmpStopListIter;
 	stop*					tmpStopPntr;
 
 	numTransferStops = 0;
@@ -298,7 +298,7 @@ void		stop::initializeStop(string _tmpIn){
 }
 void		stop::attachTransfer(string _tmpIn){
 	string			buf, tmpTransferStop;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 	double			tmpTransferDist, tmpTransferTime;
 
 	buf.clear();
@@ -322,8 +322,8 @@ void		stop::attachRoute(string _routeId, string _dir){
 }
 void		stop::attachStopTime(string _tmpIn){
 	string			buf, tmpTrip;
-	vector<string>	tokens;
-	int				tmpSequence, tmpInt;
+	vector<string>	        tokens;
+	int	                tmpSequence, tmpInt;
 	double			tmpSchArrival, tmpSchDeparture;
 
 	buf.clear();
@@ -348,7 +348,7 @@ void		stop::attachStopTime(string _tmpIn){
 void		stop::attachTaz(string _tmpIn){
 	string			buf, tmpTaz;
 	int			tmpAccessType;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 	double			tmpAccessDist, tmpAccessTime;
 
 	buf.clear();
@@ -358,7 +358,7 @@ void		stop::attachTaz(string _tmpIn){
 		tokens.push_back(buf);
 	}
 	tmpTaz = "t";
-	tmpTaz.append(tokens[0]);
+	tmpTaz.append(tokens[0]); // tokens[1]
 	tmpAccessDist = atof(tokens[2].c_str());
 	tmpAccessTime = atof(tokens[3].c_str());
 	tmpAccessType = atoi(tokens[4].c_str());
@@ -462,7 +462,7 @@ string		stop::getRouteId(int _i){
 	return *tmpRouteSetIter;
 }
 string		stop::getForwardAccessibleTrips(double _arrival, int _timeBuffer){
-	int			i, tmpSeq;
+	int		i, tmpSeq;
 	double		tmpSchDeparture;
 	string		tmpTrip, tmpAccessibleTrips;
 	char		chr[99];
@@ -476,7 +476,7 @@ string		stop::getForwardAccessibleTrips(double _arrival, int _timeBuffer){
 			tmpAccessibleTrips.append(tmpTrip);
 			tmpAccessibleTrips.append(" ");
 			sprintf(chr,"%d",tmpSeq);
-            tmpAccessibleTrips.append(string(chr));
+                        tmpAccessibleTrips.append(string(chr));
 			tmpAccessibleTrips.append(" ");
 		}
 	}
@@ -506,7 +506,7 @@ string		stop::getBackwardAccessibleTrips(double _departure, int _timeBuffer){
 void		stop::setPermanentLabel(int _label, int _threadId){
 	permanentLabels[_threadId] = _label;
 }
-int			stop::getPermanentLabel(int _threadId){
+int		stop::getPermanentLabel(int _threadId){
 	return this->permanentLabels[_threadId];
 }
 string		stop::getTaz(){
@@ -569,7 +569,7 @@ double		stop::getStrategyLabel(){
 	return this->stopStrategyLebel;
 }
 double		stop::getStrategyEarliestArrival(){
-	double							tmpMinValue;
+	double				        tmpMinValue;
 	vector<double>::iterator		tmpVectorIter;
 
 	tmpMinValue = 999999;
@@ -581,7 +581,7 @@ double		stop::getStrategyEarliestArrival(){
 	return tmpMinValue;
 }
 double		stop::getStrategyLatestArrival(){
-	double							tmpMaxValue;
+	double					tmpMaxValue;
 	vector<double>::iterator		tmpVectorIter;
 
 	tmpMaxValue = -999999;
@@ -593,7 +593,7 @@ double		stop::getStrategyLatestArrival(){
 	return tmpMaxValue;
 }
 double		stop::getStrategyEarliestDeparture(){
-	double							tmpMinValue;
+	double				        tmpMinValue;
 	vector<double>::iterator		tmpVectorIter;
 
 	tmpMinValue = 999999;
@@ -657,58 +657,60 @@ double	stop::getBackwardNonWalkLabel(){
 	}
 }
 string		stop::getForwardAssignedAlternative(double _departureTime, string _lastTrip){
-	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
+	int			i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
 	double			tmpLogsum;
-	vector<string>	tmpAlternatives;
+	vector<string>	        tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
 	char			chr1[99], chr2[99];
 
 	if(stopArrivals.size()==0){
-		//cout <<"SC1"<<endl;
+		cout <<"SC1"<<'\t';
 		return "-101";
 	}
 	tmpLogsum = 0;
 	for(i=0;i<stopArrivals.size();i++){
 		if((stopArrivalModes[i]=="Transfer" || stopArrivalModes[i]=="Access") && (_lastTrip=="Transfer" || _lastTrip=="Egress")){
-			//cout<<"1";
+			//cout<<"1"<<'\t';
 			continue;
 		}
 		if(stopArrivals[i] > _departureTime){
-			//cout<<"2";
+			//cout<<"2"<<'\t';
 			continue;
 		}
 		tmpLogsum = tmpLogsum + exp(-theta*stopCosts[i]);
+                
 	}
 	if(tmpLogsum==0){
-		//cout <<"SC2"<<endl;
+		//cout <<"SC2"<<'\t';
+                //cout <<stopArrivals.size()<<endl;
 		return "-101";
 	}
 	j=-1;
 	tmpMaxProb = 0;
 	for(i=0;i<stopArrivals.size();i++){
 		if((stopArrivalModes[i]=="Transfer" || stopArrivalModes[i]=="Access") && (_lastTrip=="Transfer" || _lastTrip=="Egress")){
-			//cout<<"3";
+			//cout<<"3"<<'\t';
 			continue;
 		}
 		if(stopArrivals[i] > _departureTime){
-			//cout<<"4";
+			//cout<<"4"<<'\t';
 			continue;
 		}
 		tmpAltProb = int(1000*(exp(-theta*stopCosts[i])/tmpLogsum));
 		if(tmpAltProb < 1){
-			//cout<<"5";
+			//cout<<"5"<<'\t';
 			continue;
 		}
 		j++;
 		if(j>0)	tmpAltProb = tmpAltProb + tmpAltProbabilities[j-1];
 		sprintf(chr1,"%d",int(100*stopArrivals[i]));
-        sprintf(chr2,"%d",int(100*stopDepartures[i]));
-        tmpAlternatives.push_back(stopPredecessors[i]+"\t"+stopArrivalModes[i]+"\t"+string(chr1)+"\t"+string(chr2));
-        tmpAltProbabilities.push_back(tmpAltProb);
+                sprintf(chr2,"%d",int(100*stopDepartures[i]));
+                tmpAlternatives.push_back(stopPredecessors[i]+"\t"+stopArrivalModes[i]+"\t"+string(chr1)+"\t"+string(chr2));
+                tmpAltProbabilities.push_back(tmpAltProb);
 		tmpMaxProb = tmpAltProb;
 	}
 	if(tmpMaxProb<1){
-		//cout <<"SC3"<<endl;
+		//cout <<"SC3"<<'\t';
 		return "-101";
 	}
 	tmpRandNum = rand()%tmpMaxProb;
@@ -717,50 +719,51 @@ string		stop::getForwardAssignedAlternative(double _departureTime, string _lastT
 			return tmpAlternatives[j];
 		}
 	}
-	//cout <<"SC4"<<endl;
+	cout <<"SC4"<<'\t';
 	return "-101";
 }
 string		stop::getBackwardAssignedAlternative(double _arrivalTime, string _lastTrip){
-	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
+	int			i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
 	double			tmpLogsum;
-	vector<string>	tmpAlternatives;
+	vector<string>	        tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
 	char			chr1[99], chr2[99];
 
 	if(stopDepartures.size()==0){
-		//cout <<"SC1"<<endl;
+		cout <<"SC1"<<'\t';
 		return "-101";
 	}
 	tmpLogsum = 0;
 	for(i=0;i<stopDepartures.size();i++){
 		if((stopDepartureModes[i]=="Transfer" || stopDepartureModes[i]=="Egress") && (_lastTrip=="Transfer" || _lastTrip=="Access")){
-			//cout<<"1";
+			//cout<<"1"<<'\t';
 			continue;
 		}
 		if(stopDepartures[i] < _arrivalTime){
-			//cout<<"2";
+			//cout<<"2"<<'\t';
 			continue;
 		}
 		tmpLogsum = tmpLogsum + exp(-theta*stopCosts[i]);
 	}
 	if(tmpLogsum==0){
-		//cout <<"SC2"<<endl;
+            //cout <<"SC2"<<'\t';
+            //cout <<stopDepartures.size()<<endl;
 		return "-101";
 	}
 	j=-1;
 	tmpMaxProb = 0;
 	for(i=0;i<stopDepartures.size();i++){
 		if((stopDepartureModes[i]=="Transfer" || stopDepartureModes[i]=="Egress") && (_lastTrip=="Transfer" || _lastTrip=="Access")){
-			//cout<<"3";
+			//cout<<"3"<<'\t';
 			continue;
 		}
 		if(stopDepartures[i] < _arrivalTime){
-			//cout<<"4";
+			//cout<<"4"<<'\t';
 			continue;
 		}
 		tmpAltProb = int(1000*(exp(-theta*stopCosts[i])/tmpLogsum));
 		if(tmpAltProb < 1){
-			//cout<<"5";
+			//cout<<"5"<<'\t';
 			continue;
 		}
 		j++;
@@ -771,8 +774,8 @@ string		stop::getBackwardAssignedAlternative(double _arrivalTime, string _lastTr
 		tmpAltProbabilities.push_back(tmpAltProb);
 		tmpMaxProb = tmpAltProb;
 	}
-	if(tmpMaxProb<1){
-		//cout <<"SC3"<<endl;
+	if(tmpMaxProb<1){  //YZ:POTENTIAL ERROR <0?
+		//cout <<"SC3"<<'\t';
 		return "-101";
 	}
 	tmpRandNum = rand()%tmpMaxProb;
@@ -781,7 +784,7 @@ string		stop::getBackwardAssignedAlternative(double _arrivalTime, string _lastTr
 			return tmpAlternatives[j];
 		}
 	}
-	//cout <<"SC4"<<endl;
+	cout <<"SC4"<<'\t';
 	return "-101";
 }
 /////////////////////////////////////////////////////////////////////////////////////////////

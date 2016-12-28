@@ -25,12 +25,12 @@ limitations under the License.
 using namespace std;
 
 int		initializeSimulatoin(){
-	int									tmpInt, noOfPassengers, tmpPassengerStatus;
-	string								fileStr, tmpPath;
+	int					        tmpInt, noOfPassengers, tmpPassengerStatus;
+	string						fileStr, tmpPath;
 	list<stop*>::iterator				tmpStopListIter;
 	list<trip*>::iterator				tmpTripListIter;
 	list<passenger*>::iterator			tmpPassengerListIter;
-	passenger*							tmpPassengerPntr;
+	passenger*					tmpPassengerPntr;
 
 	passengers2transfer.clear();
 	for(tmpStopListIter=stopList.begin();tmpStopListIter!=stopList.end();tmpStopListIter++){
@@ -45,10 +45,10 @@ int		initializeSimulatoin(){
 		tmpPassengerStatus = tmpPassengerPntr->getPassengerStatus();
 		tmpPath = tmpPassengerPntr->getAssignedPath();
         if(tmpPath!=""){
-            tmpPassengerPntr->resetPathInfo();
-			tmpInt = tmpPassengerPntr->initializePath();
-			tmpPassengerPntr->setPassengerStatus(0);
-			noOfPassengers++;
+                tmpPassengerPntr->resetPathInfo();
+		tmpInt = tmpPassengerPntr->initializePath();
+		tmpPassengerPntr->setPassengerStatus(0);
+		noOfPassengers++;
 		}
 	}
 
@@ -58,17 +58,17 @@ int		initializeSimulatoin(){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		createPassengers(int _t1, int _t2){
-	string								buf, tmpPassengerId, tmpVehicleId;
-	int									tmpPassengerStatus, tmpStartTime, noOfPassengerCreated;
-	map<string,passenger*>::iterator	tmpPassengerIter;
-	passenger*							passengerPntr;
+	string				                          buf, tmpPassengerId, tmpVehicleId;
+	int			                                  tmpPassengerStatus, tmpStartTime, noOfPassengerCreated;
+	map<string,passenger*>::iterator	                  tmpPassengerIter;
+	passenger*						  passengerPntr;
 
 	noOfPassengerCreated = 0;
 	for(tmpPassengerIter=passengerSet.begin();tmpPassengerIter!=passengerSet.end();tmpPassengerIter++){
 		passengerPntr = (*tmpPassengerIter).second;
-        tmpPassengerStatus = passengerPntr->getPassengerStatus();
+                tmpPassengerStatus = passengerPntr->getPassengerStatus();
 		tmpStartTime = 60 * passengerPntr->getStartTime();
-		if (tmpPassengerStatus==0 && tmpStartTime >= _t1 && tmpStartTime < _t2){
+		if (tmpPassengerStatus==0 && tmpStartTime >= _t1 && tmpStartTime < _t2){  //0 assigned
 			passengers2transfer.push_back(passengerPntr);
 			passengerPntr->setPassengerStatus(1);	//walking
 			noOfPassengerCreated++;
@@ -79,9 +79,9 @@ int		createPassengers(int _t1, int _t2){
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		transferPassengers(int _t){
 	string							tmpIn, tmpPassengerId, tmpBoardingStop, tmpNextTrip, tmpExperiencedPath;
-	int								tmpPassCntr, tmpNoOfPassengers, tmpAlightingTime, tmpWalkingTime,
-									tmpMissingCase, tmpNumPassengersArrived, tmpNumPassengersRemoved;
-	list<passenger*>::iterator		tmpPassenger2transferIter;
+	int						        tmpPassCntr, tmpNoOfPassengers, tmpAlightingTime, tmpWalkingTime,
+								tmpMissingCase, tmpNumPassengersArrived, tmpNumPassengersRemoved;
+	list<passenger*>::iterator		                tmpPassenger2transferIter;
 	passenger*						passengerPntr;
 
 	tmpNoOfPassengers = passengers2transfer.size();
@@ -128,7 +128,7 @@ int		transferPassengers(int _t){
 int		alightPassengers(int _t, string _tripId, string _stopId){
 
 	string			fileStr, tmpPassengerId, tmpTripId;
-	int				tmpPassCntr, tmpNoOfOnBoardPassengers, tmpNoOfAlightings;
+	int			tmpPassCntr, tmpNoOfOnBoardPassengers, tmpNoOfAlightings;
 	stop*			tmpStopPntr;
 	trip*			tmpTripPntr;
 	passenger*		tmpPassengerPntr;
@@ -161,13 +161,13 @@ int		alightPassengers(int _t, string _tripId, string _stopId){
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		boardPassengers(int _t, string _tripId, string _stopId){
 
-	string			tmpPassengerId, tmpTripId;
+	string			        tmpPassengerId, tmpTripId;
 	int				tmpPassCntr, tmpFreeCapacity, tmpNoOfOnBoardPassengers, tmpNoOfWaitingPassengers,
 					tmpNoOfBoardings, tmpNoOfMissings, tmpMissingCase;
 
 	//For Available Capacity Definition
-	string			fromToAt;
-    string          fromToAt2;
+    string			fromToAt;
+    string                      fromToAt2;
     float			tmpArrivaltime, tmpLatestArrivalTime;
 
 	stop*			tmpStopPntr;
@@ -195,7 +195,7 @@ int		boardPassengers(int _t, string _tripId, string _stopId){
 					tmpNoOfMissings = tmpNoOfMissings + 1;
 
 					fromToAt = tmpTripId + "," + _stopId;
-                    tmpArrivaltime = tmpPassengerPntr->getArrivalTime();
+                                        tmpArrivaltime = tmpPassengerPntr->getArrivalTime();
 					if(availableCapacity.find(fromToAt)==availableCapacity.end()){
 						availableCapacity[fromToAt] = tmpArrivaltime;
 					}else{
@@ -216,7 +216,8 @@ int		boardPassengers(int _t, string _tripId, string _stopId){
                         availableCapacity2[fromToAt2]=0;
                     }
 					
-				}else{
+				}
+                            else{
 					tmpTripPntr->addPassenger(tmpPassengerId);
 					tmpPassengerPntr->addBoardingTime(_t/60.0);
 					tmpPassengerPntr->setPassengerStatus(3);	//on board
@@ -240,7 +241,7 @@ int		boardPassengers(int _t, string _tripId, string _stopId){
 int		calculateDwellTime(int _t, string _tripId, string _stopId){
 
 	string			tmpTripId;
-	int				tmpNoOfBoardings, tmpNoOfAlightings, tmpDwellTime, tmpRouteType;
+	int			tmpNoOfBoardings, tmpNoOfAlightings, tmpDwellTime, tmpRouteType;
 	stop*			tmpStopPntr;
 	trip*			tmpTripPntr;
 
@@ -268,15 +269,15 @@ int		calculateDwellTime(int _t, string _tripId, string _stopId){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		simulation(){
-	int					counter, maxEvent, tmpOut, tmpEventTime, numAssignedPassengers, numArrivedPassengers, numMissedPassengers;
-	string				buf, tmpEventStr, tmpEventTrip, tmpEventStop, tmpEventType;
+    int			counter, maxEvent, tmpOut, tmpEventTime, numAssignedPassengers, numArrivedPassengers, numMissedPassengers;
+    string		buf, tmpEventStr, tmpEventTrip, tmpEventStop, tmpEventType;
     double              startTime, endTime, cpuTime;
     char                chr[99];
-	vector<string>		tokens;
-	trip*				tripPntr;
+    vector<string>	tokens;
+    trip*		tripPntr;
 
         ofstream     logFile;
-        logFile.open("ft_log.txt", fstream::app);
+        logFile.open("C:/FastTripsScripts/Input Data/ft_log.txt", fstream::app);
         logFile <<"Simulation started at:"<<getTime()<<endl;
 
 	numAssignedPassengers = initializeSimulatoin();
@@ -331,14 +332,14 @@ int		simulation(){
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		printLoadProfile(){
 	//cout <<"*****************************PRINTING LOAD-PROFILE*****************************"<<endl;
-	int									i, tmpMaxSeq, tmpNumStopTimes, tmpDwellTime, tmpVehLoad, tmpBoardings, tmpAlightings;
+	int								i, tmpMaxSeq, tmpNumStopTimes, tmpDwellTime, tmpVehLoad, tmpBoardings, tmpAlightings;
 	double								tmpDepartureTime, tmpHeadway;
 	string								tmpOut, tmpRouteId, tmpShapeId, tmpTripId, tmpDirection, tmpStopId;
-	list<trip*>::iterator				tmpTripListIter;
+	list<trip*>::iterator				                tmpTripListIter;
 	trip*								tmpTripPntr;
 
 	ofstream outFile1;
-	outFile1.open("ft_output_loadProfile.dat");
+	outFile1.open("C:/FastTripsScripts/Input Data/ft_output_loadProfile.dat");
 	//outFile1 <<"routeId\tshapeId\ttripId\tdirection\tstopId\tsequence\tdepartureTime\theadway\tdwellTime\tboardings\talightings\tload"<<endl;
 
 	tmpNumStopTimes = 0;
@@ -368,14 +369,14 @@ int		printLoadProfile(){
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		printPassengerPaths(){
 	//cout <<"*****************************PRINTING PASSENGER-PATHS*****************************"<<endl;
-	int									noOfPassengers, tmpMode;
+	int							        noOfPassengers, tmpMode;
 	string								fileStr, tmpPassengerId, tmpOriginTaz, tmpDestinationTaz, tmpPath;
-	map<string,passenger*>::iterator	tmpPassengerIter;
+	map<string,passenger*>::iterator	                        tmpPassengerIter;
 	passenger*							passengerPntr;
 
 	noOfPassengers = 0;
 	ofstream	outFile2;
-	outFile2.open("ft_output_passengerPaths.dat");
+	outFile2.open("C:/FastTripsScripts/Input Data/ft_output_passengerPaths.dat");
 	//outFile <<"passengerId\tmode\toriginTaz\tdestinationTaz\tstartTime\tboardingStops\tboardingTrips\talightingStops\twalkingTimes"<<endl;
 	for(tmpPassengerIter=passengerSet.begin();tmpPassengerIter!=passengerSet.end();tmpPassengerIter++){
 		tmpPassengerId = (*tmpPassengerIter).first;
@@ -396,14 +397,14 @@ int		printPassengerPaths(){
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		printPassengerTimes(){
 	//cout <<"*****************************PRINTING PASSENGER-TIMES*****************************"<<endl;
-	int									noOfPassengers, tmpStatus;
+	int								noOfPassengers, tmpStatus;
 	double								tmpTravelCost;
 	string								tmpExperiencedPath;
-	list<passenger*>::iterator			tmpPassengerListIter;
+	list<passenger*>::iterator		                        tmpPassengerListIter;
 	passenger*							tmpPassengerPntr;
 
 	ofstream outFile3;
-	outFile3.open("ft_output_passengerTimes.dat");
+	outFile3.open("C:/FastTripsScripts/Input Data/ft_output_passengerTimes.dat");
 	//outFile2 <<"passengerId\tmode\toriginTAz\tdestinationTaz\tstartTime\tendTime\tarrivalTimes\tboardingTimes\talightingTimes\ttravelCost"<<endl;
 
 	noOfPassengers = 0;
@@ -413,7 +414,7 @@ int		printPassengerTimes(){
 		tmpStatus = tmpPassengerPntr->getPassengerStatus();
 		if(tmpStatus==5){
 			tmpExperiencedPath = tmpPassengerPntr->getExperiencedPath();
-            tmpPassengerPntr->calculateExperiencedCost();
+                        tmpPassengerPntr->calculateExperiencedCost();
 			tmpTravelCost = tmpPassengerPntr->getExperiencedCost();
 			outFile3 <<tmpExperiencedPath<<"\t"<<floor(100*tmpTravelCost)/100.0<<endl;
 			noOfPassengers++;
@@ -425,15 +426,15 @@ int		printPassengerTimes(){
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		printPaths(){
 	//cout <<"***************************** PRINTING PATHS *****************************"<<endl;
-	int									noOfPassengers, tmpStatus;
+	int								noOfPassengers, tmpStatus;
 	double								tmpStartTime, tmpEndTime, tmpAccessTime, tmpEgressTime, noOfTransfers;
 	string								fileStr, tmpPassengerId;
-	map<string,passenger*>::iterator	tmpPassengerIter;
+	map<string,passenger*>::iterator	                        tmpPassengerIter;
 	passenger*							passengerPntr;
 
 	noOfPassengers = 0;
 	ofstream	outFile4;
-	outFile4.open("paths.dat");
+	outFile4.open("C:/FastTripsScripts/Input Data/paths.dat");
 	for(tmpPassengerIter=passengerSet.begin();tmpPassengerIter!=passengerSet.end();tmpPassengerIter++){
 		tmpPassengerId = (*tmpPassengerIter).first;
 		passengerPntr = NULL;
@@ -455,13 +456,13 @@ int		printPaths(){
 //////////////////////////////////////////////////////////////////////////////////////////////
 int		printUnlinkedTrips(){
 	//cout <<"*****************************PRINTING UNLINKED-TRIPS*****************************"<<endl;
-	int									i, noOfPassengers, tmpStatus, noOfUnlinkedTrips;
+	int							        i, noOfPassengers, tmpStatus, noOfUnlinkedTrips;
 	string								tmpPassengerId, tmpUnlinkedTripString, tmpTripId, tmpBoardingStop, tmpAlightingStop;
-	list<passenger*>::iterator			tmpPassengerListIter;
+	list<passenger*>::iterator			                tmpPassengerListIter;
 	passenger*							tmpPassengerPntr;
 
 	ofstream outFile5;
-	outFile5.open("unlinkedTrips.dat");
+	outFile5.open("C:/FastTripsScripts/Input Data/unlinkedTrips.dat");
 	//outFile2 <<"passengerId"<<endl;
 
 	noOfPassengers = 0;

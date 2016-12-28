@@ -27,17 +27,19 @@ limitations under the License.
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include "ft_TAZ.h"
 using namespace std;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 class passenger{
 protected:
 	string				passengerString;
 	string				passengerId;
-	string				passengerOriginTAZ;
-	string				passengerDestinationTAZ;
-	int					passengerMode;
-	int					passengerTimePeriod;
-	int					passengerTourHalf;
+	//string				passengerOriginTAZ;  YZ:move to public 
+	//string				passengerDestinationTAZ;
+	int				passengerMode;
+	int				passengerTimePeriod;
+	int				passengerTourHalf;
 	double				passengerPDT;
 	double				passengerPAT;
 	string				passengerTazTime;
@@ -52,25 +54,29 @@ protected:
 	vector<string>		alightingStops;
 	vector<double>		walkingTimes;
 
-	int					passengerStatus;	//-1=not assigned, 0=assigned, 1=walking, 2=waiting, 3=on board, 4=missed, 5=arrived,
-	int					passengerPathIndex;
+	int			passengerStatus;	//-1=not assigned, 0=assigned, 1=walking, 2=waiting, 3=on board, 4=missed, 5=arrived,
+	int			passengerPathIndex;
 	vector<double>		experiencedArrivalTimes;
 	vector<double>		experiencedBoardingTimes;
 	vector<double>		experiencedAlightingTimes;
-	string				experiencedPath;
-	double				experiencedCost;
+	string			experiencedPath;
+	double			experiencedCost;
 
     //path-based assignment
-    map<string,int>						pathSet;
+    //map<string,int>				pathSet;//YZ:MOVE TO PUBLIC, CALLED IN TBHP.h
     map<string,int>::iterator			pathIter;
-    map<string,double>					pathUtility;
-	map<string,double>::iterator		pathIter2;
-    map<string,int>                     pathCapacity;
+    map<string,double>				pathUtility;
+    map<string,double>::iterator		pathIter2;
+    map<string,int>                             pathCapacity;
     
 public:
 	passenger(){}
 	~passenger(){}
-
+        
+        string				passengerOriginTAZ;
+	string				passengerDestinationTAZ;
+        map<string,int>				pathSet;
+        
 	void			initializePassenger(string _passengerStr);
 	string			getPassengerString();
 	string			getPassengerId();
@@ -78,10 +84,10 @@ public:
 	string			getDestinationTAZ();
 	double			getPDT();
 	double			getPAT();
-	int				getTourHalf();
-	int				getMode();
+	int			getTourHalf();
+	int			getMode();
 	string			getTazTime();
-	int				getTimePeriod();
+	int			getTimePeriod();
 
 	//For Assignment
 	void			setAssignedPath(string _tmpPath);
@@ -127,23 +133,29 @@ public:
     double			getAccessTime();
     double			getEgressTime();
     string			getUnlinkedTrip(int _i);
+    
+    int 	countpassengersODnotconnected();// YZ:counting the passegersOD are not connected by links
+    int 	countpassengersODnotinTAZset(); // YZ:counting the passegersOD are not included in the TAZ set
+    int 	countpassengersODequals();      //YZ:counting the passengers whose O=D 
+    
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-map<string,passenger*>				passengerSet;
+map<string,passenger*>				        passengerSet;
 list<passenger*>					passengerList;
 map<string,string>					tazTimeSet;
 list<passenger*>					passengers2transfer;
-
+passenger                                               PASSENGER;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-int			readPassengers(){
+vector<int>			readPassengers(){
     cout <<"reading demand:\t\t\t";
 
 	string			tmpIn, buf, tmpPassengerId, tmpMode;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 	passenger*		tmpPassengerPntr;
-
+        int                     cntr1,cntr2,cntr3;
+        vector <int>            r;
 	ifstream inFile;
-	inFile.open("ft_input_demand.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_demand.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_demand.dat";
 		exit(1);
@@ -167,16 +179,55 @@ int			readPassengers(){
 		passengerSet[tmpPassengerId]->initializePassenger(tmpIn);
 	}
 	inFile.close();
-	return passengerSet.size();
+        cntr1=PASSENGER.countpassengersODnotinTAZset();
+        cntr2=PASSENGER.countpassengersODequals(); 
+        cntr3=PASSENGER.countpassengersODnotconnected();
+        r.push_back(passengerSet.size());
+        r.push_back(cntr1);
+        r.push_back(cntr2);
+        r.push_back(cntr3);
+        return r;
+	//return passengerSet.size();
+}
+int 	passenger::countpassengersODnotconnected(){
+      int cntr3=0;
+      map <string,passenger*>::iterator it3;
+      for (it3=passengerSet.begin();it3!=passengerSet.end(); ++it3){
+         if((tazSet[it3->second->passengerOriginTAZ]->tazStops).empty()||(tazSet[it3->second->passengerDestinationTAZ]->tazStops).empty()){
+              if (it3->second->passengerOriginTAZ!=it3->second->passengerDestinationTAZ) // YZ: to subtract the number which had been counted in the situation of O=D
+                 cntr3++; 
+         }  
+      }   
+      return cntr3;
+}
+   
+int 	passenger::countpassengersODnotinTAZset(){// YZ:passengers whose OD are not included in the TAZ set
+    int cntr1=0;
+    map <string,passenger*>::iterator it1;
+    for (it1=passengerSet.begin();it1!=passengerSet.end(); ++it1){
+         if(tazSet.find(it1->second->passengerOriginTAZ)==tazSet.end() || tazSet.find(it1->second->passengerDestinationTAZ)==tazSet.end())              
+                   cntr1++;
+    }
+     return cntr1;
+}
+
+int 	passenger::countpassengersODequals(){ // YZ:passengers whose O=D
+    int cntr2=0;
+    map <string,passenger*>::iterator it2;
+    for (it2=passengerSet.begin();it2!=passengerSet.end(); ++it2){
+         if((it2->second->passengerOriginTAZ)==(it2->second->passengerDestinationTAZ))                
+                   cntr2++;
+         }
+    return cntr2;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 int			readExistingPaths(){
-	int				tmpNumPaths;
+	int			tmpNumPaths;
 	string			tmpIn, buf, tmpPassengerId, tmpPath;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 
 	ifstream inFile;
-	inFile.open("ft_output_passengerPaths.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_output_passengerPaths.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_output_passengerPaths.dat";
 		exit(1);
@@ -294,8 +345,7 @@ void		passenger::resetPathInfo(){
 }
 int			passenger::initializePath(){
 	vector<string>		tokens;
-	string				buf, tmpPathString, tmpBoardingStops, tmpTrips, tmpAlightingStops, tmpWalkingTimes;
-
+	string			buf, tmpPathString, tmpBoardingStops, tmpTrips, tmpAlightingStops, tmpWalkingTimes;
 	buf.clear();
 	tokens.clear();
 	tmpPathString = assignedPath;
@@ -419,7 +469,7 @@ string		passenger::getExperiencedPath(){
 			tmpAlightingTimes.append(",");
 		}
         sprintf(chr,"%d",int(100*experiencedArrivalTimes[i])/100);
-        tmpArrivalTimes.append(string(chr));
+                tmpArrivalTimes.append(string(chr));
 		tmpArrivalTimes.append(".");
 		if(int(100*experiencedArrivalTimes[i])%100<10)	tmpArrivalTimes.append("0");
         sprintf(chr,"%d",int(100*experiencedArrivalTimes[i])%100);
@@ -530,31 +580,31 @@ void    passenger::addPaths(string _tmpPath){
 }
 void    passenger::analyzePaths(){
 	//For Choice Set Attributes
-    int                         n, routeType;
-	string					    buf, buf2;
+        int                             n, routeType;
+	string			        buf, buf2;
 	vector< vector<string> >	tokens;
-	vector<string>			    tokens2;
-	vector<string>			    tmpTrips, tmpBoardings, tmpAlightings, tmpWalkings;
-	string					    tmpStartTime, tmpFromToAt;
-	double					    NTR, IWT, IVT, railIVT, TRT, ACD, EGD, TRD, ScDelay, FARE, tmpUtility;
-	string  					routeId, routeComb, tripComb, transferComb; //transferComb for capacity constraints
+	vector<string>			tokens2;
+	vector<string>			tmpTrips, tmpBoardings, tmpAlightings, tmpWalkings;
+	string	                        tmpStartTime, tmpFromToAt;
+	double			        NTR, IWT, IVT, railIVT, TRT, ACD, EGD, TRD, ScDelay, FARE, tmpUtility;
+	string  		        routeId, routeComb, tripComb, transferComb; //transferComb for capacity constraints
 
     pathUtility.clear();
     pathCapacity.clear();
     for(pathIter=pathSet.begin();pathIter!=pathSet.end();pathIter++){
         buf.clear();
         tokens.clear();
-        stringstream ss((*pathIter).first);
+        stringstream ss((*pathIter).first);  
         while (ss >> buf){
             stringstream ss2(buf);
             buf2.clear();
             tokens2.clear();
-            while (getline(ss2, buf2, ',')){
+            while (getline(ss2, buf2, ',')){  //YZ: getline,Extracts characters from ss2 and stores them into buf2 until the delimitation character ',' is found (or the newline character, '\n')
                 tokens2.push_back(buf2);
             }
             tokens.push_back(tokens2);
         }
-        tmpStartTime = tokens[0][0];
+        tmpStartTime = tokens[0][0]; // see 555:tokens.push_back(tokens2)
         tmpTrips = tokens[2];
         tmpBoardings = tokens[1];
         tmpAlightings = tokens[3];
@@ -638,7 +688,7 @@ void    passenger::analyzePaths(){
 }
 string  passenger::assignPath(){
 	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
-    double          tmpLogsum;
+        double          tmpLogsum;
 	vector<string>	tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
 
@@ -654,7 +704,7 @@ string  passenger::assignPath(){
 
     //Calculate the denominator of the logit model
 	i = 0;
-    tmpLogsum = 0;
+        tmpLogsum = 0;
 	for(pathIter2=pathUtility.begin();pathIter2!=pathUtility.end();pathIter2++){
         if(pathCapacity[(*pathIter2).first]>0){
             i++;
@@ -714,7 +764,7 @@ double	passenger::getAccessTime(){
 double	passenger::getEgressTime(){
 	return this->walkingTimes.back();
 }
-string passenger::getUnlinkedTrip(int _i){
+string passenger::getUnlinkedTrip(int _i){  // what's this?
 	string tmpUnlinkedTrip, tmpStr;
 	char	chr[99];
 

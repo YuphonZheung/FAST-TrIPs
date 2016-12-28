@@ -38,10 +38,9 @@ protected:
 	double					tazLon;
 
 	vector<string>			tazNodes;
-	vector<string>			tazStops;
 	vector<double>			tazAccessDistances;
 	vector<double>			tazAccessTimes;
-	vector<int>				tazAccessTypes;
+	vector<int>			tazAccessTypes;
 
 	//For TBSP
 	vector<double>			tazLabels;
@@ -52,8 +51,8 @@ protected:
 	vector<string>			tazPredecessors;
 	vector<string>			tazSuccessors;
 
-    //For TBHP
-	double					tazStrategyLebel;
+        //For TBHP
+	//double				tazStrategyLebel; //YZ:move to public, called in TBHP.h
 	vector<double>			tazCosts;
 
 public:
@@ -62,7 +61,7 @@ public:
 	void					initializeTaz(string _tmpIn);
 	void					attachNode(string _tmpIn);
 	void					attachStop(string _tmpIn);
-
+        vector<string>			tazStops;
 	//For TBSP
 	void					parallelize(int _numThreads);
 	void					resetTaz(int _threadId);
@@ -83,6 +82,7 @@ public:
 	string					printPath(int _threadId);
 
 	//For TBHP
+        double				        tazStrategyLebel;
 	void					resetTazStrategy();
 	void					forwardStrategyUpdate(double _label, double _arrival, string _predecessor, double _cost);
 	void					backwardStrategyUpdate(double _label, double _departure, string _successor, double _cost);
@@ -92,7 +92,7 @@ public:
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 map<string,taz*>			tazSet;
-list<taz*>					tazList;
+list<taz*>				tazList;
 map<string,double>			accessTimes;
 
 int			readTAZs();
@@ -102,13 +102,13 @@ int			parallelizeTazs(int _numThreads);
 int			readTAZs(){
     cout <<"reading TAZs:\t\t\t";
 
-        int				tmpNumZones;
+        int			tmpNumZones;
 	string			tmpIn, buf, tmpTazId;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 	taz*			tmpTazPntr;
 
 	ifstream inFile;
-	inFile.open("ft_input_zones.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_zones.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_zones.dat";
 		exit(1);
@@ -144,20 +144,21 @@ int			readTAZs(){
 int			readAccessLinks(){
     cout <<"reading access links:\t\t";
 
-        int				numAccessLinks;
+        int			numAccessLinks;
 	string			tmpIn, buf, tmpTazId, tmpStopId;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 	taz*			tmpTazPntr;
 	stop*			tmpStopPntr;
 
 	ifstream inFile;
-	inFile.open("ft_input_accessLinks.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_accessLinks.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_accessLinks.dat";
 		exit(1);
 	}
 	numAccessLinks=0;
-	//getline(inFile,tmpIn);
+        getline(inFile,tmpIn);
+        
 	while (!inFile.eof()){
 		buf.clear();
 		tokens.clear();
@@ -176,7 +177,7 @@ int			readAccessLinks(){
 		tmpStopId.append(tokens[1]);
 		tmpStopPntr = NULL;
 		tmpStopPntr = stopSet[tmpStopId];
-		tmpStopPntr->attachTaz(tmpIn);
+	        tmpStopPntr->attachTaz(tmpIn);
 		accessTimes[tmpTazId+","+tmpStopId] = atof(tokens[3].c_str());
 		numAccessLinks++;
 	}
@@ -184,7 +185,7 @@ int			readAccessLinks(){
 }
 int			parallelizeTazs(int _numThreads){
 	list<taz*>::iterator	tmpTazListIter;
-	taz*					tmpTazPntr;
+	taz*			tmpTazPntr;
 
 	for(tmpTazListIter=tazList.begin();tmpTazListIter!=tazList.end();tmpTazListIter++){
 		tmpTazPntr = NULL;
@@ -226,7 +227,7 @@ void		taz::attachNode(string _tmpIn){
 void		taz::attachStop(string _tmpIn){
 	string			buf, tmpStop;
 	int			tmpAccessType;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 	double			tmpAccessDist, tmpAccessTime;
 
 	buf.clear();
@@ -257,7 +258,7 @@ void		taz::parallelize(int _numThreads){
 		tazSuccessors.push_back("-101");
 	}
 }
-void		taz::resetTaz(int _threadId){
+void		taz::resetTaz(int _threadId){  //YZ: used in TBSP, nothing to do with TBHP
 	tazLabels[_threadId] = 999999;
 	tazArrivals[_threadId] = 999999;
 	tazDepartures[_threadId] = -999999;
@@ -287,12 +288,12 @@ double		taz::getAccessTime(int _i){
 int		taz::getAccessType(int _i){
 	return this->tazAccessTypes[_i];
 }
-void		taz::forwardUpdate(double _label, double _arrival, string _predecessor, int _threadId){
+void		taz::forwardUpdate(double _label, double _arrival, string _predecessor, int _threadId){  //YZ:for TBSP
 	tazLabels[_threadId] = _label;
 	tazArrivals[_threadId] = _arrival;
 	tazPredecessors[_threadId] = _predecessor;
 }
-void		taz::backwardUpdate(double _label, double _departure, string _successor, int _threadId){
+void		taz::backwardUpdate(double _label, double _departure, string _successor, int _threadId){ //YZ:for TBSP
 	tazLabels[_threadId] = _label;
 	tazDepartures[_threadId] = _departure;
 	tazSuccessors[_threadId] = _successor;
@@ -312,7 +313,7 @@ string		taz::getPredecessor(int _threadId){
 string		taz::getSuccessor(int _threadId){
 	return this->tazSuccessors[_threadId];
 }
-string		taz::printPath(int _threadId){
+string		taz::printPath(int _threadId){       
 	cout <<tazId<<"\t"<<tazLabels[_threadId]<<endl;
 	cout <<"\t\t"<<tazDepartures[_threadId]<<"\t"<<tazSuccessors[_threadId]<<"\t"<<endl;
 	return "";
@@ -343,9 +344,9 @@ void		taz::backwardStrategyUpdate(double _label, double _departure, string _succ
 double		taz::getStrategyLabel(){
 	return this->tazStrategyLebel;
 }
-string		taz::getForwardAssignedAlternative(double _departureTime){
-	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
-	vector<string>	tmpAlternatives;
+string		taz::getForwardAssignedAlternative(double _departureTime){   // double _arrivalTime should be more appropriate
+	int			i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
+	vector<string>         	tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
 	char			chr[99];
 
@@ -359,7 +360,7 @@ string		taz::getForwardAssignedAlternative(double _departureTime){
 		j++;
 		if(j>0)			tmpAltProb = tmpAltProb + tmpAltProbabilities[j-1];
 		sprintf(chr,"%d",int(100*tazArrivals[i]));
-        tmpAlternatives.push_back(tazPredecessors[i] + "\t" + string(chr));
+                tmpAlternatives.push_back(tazPredecessors[i] + "\t" + string(chr));
 		tmpAltProbabilities.push_back(tmpAltProb);
 		tmpMaxProb = tmpAltProb;
 	}
@@ -372,7 +373,7 @@ string		taz::getForwardAssignedAlternative(double _departureTime){
 	}
 	return "-101";
 }
-string		taz::getBackwardAssignedAlternative(double _arrivalTime){
+string		taz::getBackwardAssignedAlternative(double _arrivalTime){   // YZ: "_arrivalTime" should be more appropriate if named as "_departureTime"
 	int				i, j, tmpAltProb, tmpMaxProb, tmpRandNum;
 	vector<string>	tmpAlternatives;
 	vector<int>		tmpAltProbabilities;
@@ -388,7 +389,7 @@ string		taz::getBackwardAssignedAlternative(double _arrivalTime){
 		j++;
 		if(j>0)			tmpAltProb = tmpAltProb + tmpAltProbabilities[j-1];
 		sprintf(chr,"%d",int(100*tazDepartures[i]));
-        tmpAlternatives.push_back(tazSuccessors[i] + "\t" + string(chr));
+                tmpAlternatives.push_back(tazSuccessors[i] + "\t" + string(chr));
 		tmpAltProbabilities.push_back(tmpAltProb);
 		tmpMaxProb = tmpAltProb;
 	}

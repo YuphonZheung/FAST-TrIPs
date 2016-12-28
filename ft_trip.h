@@ -34,9 +34,9 @@ class	trip{
 protected:
 	string				tripId;
 	string				tripRoute;
-	int					tripType;
+	int				tripType;
 	double				tripStartTime;
-	int					tripCapacity;
+	int				tripCapacity;
 	string				tripShape;
 	string				tripDirection;
 
@@ -49,8 +49,8 @@ protected:
 	vector<int>			tripUsedBefore;
 
 	//For Simulation
-	int					stopIndex;
-	list<string>		passengers;
+	int				stopIndex;
+	list<string>		        passengers;
 	vector<int>			noOfBoardings;
 	vector<int>			noOfAlightings;
 	vector<int>			noOfOnBoards;
@@ -67,9 +67,9 @@ public:
 	string				getTripId();
 	string				getRouteId();
 	string				getShapeId();
-	int					getRouteType();
+	int				getRouteType();
 	string				getDirection();
-	int					getMaxSequence();
+	int				getMaxSequence();
 	string				getStop(int _seq);
 	double				getSchArrival(int _seq);
 	double				getSchDeparture(int _seq);
@@ -80,25 +80,25 @@ public:
 	//For TBSP
 	void				resetTripUsedBefore(int _threadId);
 	void				setTripUsedBefore(int _threadId);
-	int					getTripUsedBefore(int _threadId);
-	int					getResidualCapacity(int _seq);
+	int				getTripUsedBefore(int _threadId);
+	int				getResidualCapacity(int _seq);
 
 	//For Simulation
 	void				resetTripForSimulation();
-	int					getStopIndex();
-	int					getTripStartTime();
-	int					getTripCapacity();
-	int					getFreeCapacity();
-	int					getNoOfOnBoardPassengers();
+	int				getStopIndex();
+	int				getTripStartTime();
+	int				getTripCapacity();
+	int				getFreeCapacity();
+	int				getNoOfOnBoardPassengers();
 
-	int					getNoOfAlightings();
-	int					getNoOfBoardings();
+	int				getNoOfAlightings();
+	int				getNoOfBoardings();
 
 	void				addPassenger(string _passengerId);
 	void				removePassenger(int _passengerCntr);
 	string				getPassengerId(int _passengerCntr);
 	void				increaseStopIndex();
-	int					checkMissing(string _boardingStop);
+	int				checkMissing(string _boardingStop);
 
 	string				getCurrentStop();
 	double				getCurrentScheduledArrival();
@@ -106,27 +106,27 @@ public:
 	void				setBoardings(int _boardings);
 	void				setAlightings(int _alightings);
 	void				setOnBoards(int _onBoards);
-	int					getBoardings(int _seq);
-	int					getAlightings(int _seq);
-	int					getVehLoad(int _seq);
+	int				getBoardings(int _seq);
+	int				getAlightings(int _seq);
+	int				getVehLoad(int _seq);
 	void				setDwellTime(int _dwellTime);
-	int					getDwellTime(int _seq);
+	int				getDwellTime(int _seq);
 	void				setResidualCapacity(int _residualCapacity);
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 map<string,trip*>		tripSet;
-list<trip*>				tripList;
+list<trip*>			tripList;
 list<string>			eventList;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 int		readTrips(){
     cout <<"reading trips:\t\t\t";
 
 	string			tmpIn, buf, tmpTripId, tmpRouteId;
-	vector<string>	tokens;
+	vector<string>	        tokens;
 	trip*			tmpTripPntr;
 
 	ifstream inFile;
-	inFile.open("ft_input_trips.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_trips.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_trips.dat";
 		exit(1);
@@ -162,15 +162,15 @@ int		readStopTimes(){
 
         string						tmpIn, buf, tmpTripId, tmpStopId, tmpRouteId, tmpStr, tmpEventStr, tripDirection;
 	int							numStopTimes, tmpTime;
-	vector<string>				tokens;
-	list<stop*>::iterator		tmpStopListIter;
-	list<trip*>::iterator		tmpTripListIter;
+	vector<string>				        tokens;
+	list<stop*>::iterator		                tmpStopListIter;
+	list<trip*>::iterator		                tmpTripListIter;
 	stop*						tmpStopPntr;
 	trip*						tmpTripPntr;
 	char						chr[99];
 
 	ifstream inFile;
-	inFile.open("ft_input_stopTimes.dat");
+	inFile.open("C:/FastTripsScripts/Input Data/ft_input_stopTimes.dat");
 	if (!inFile) {
 		cerr << "Unable to open file ft_input_stopTimes.dat";
 		exit(1);
@@ -210,8 +210,8 @@ int		readStopTimes(){
 		//For New Simulation
 		tmpTime = atof(tokens[2].c_str());
 		tmpTime = 3600*(int(tmpTime)/10000) + 60*((int(tmpTime)%10000)/100) + int(tmpTime)%100;
-        sprintf(chr,"%d",tmpTime);
-        tmpEventStr = string(chr);
+                sprintf(chr,"%d",tmpTime);
+                tmpEventStr = string(chr);
 		tmpStr.resize(6-tmpEventStr.length(),'0');
 		tmpEventStr = tmpStr + tmpEventStr + ",d," + tmpTripId + "," + tmpStopId;
 		eventList.push_back(tmpEventStr);
@@ -242,8 +242,8 @@ int		parallelizeTrips(int _numThreads){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 void		trip::initializeTrip(string _tmpIn){
 	string			buf;
-	vector<string>	tokens;
-	int				tmpInt;
+	vector<string>	        tokens;
+	int			tmpInt;
 	double			tmpDouble;
 
 	stringstream	ss(_tmpIn);
@@ -414,7 +414,7 @@ void		trip::addPassenger(string _passengerId){
 void		trip::removePassenger(int _passengerCntr){
 	list<string>::iterator		tmpPassengerIter;
 	tmpPassengerIter = passengers.begin();
-	advance(tmpPassengerIter,_passengerCntr);
+	advance(tmpPassengerIter,_passengerCntr); // advance(it,n),it:iterator to be advanced, n:number of elements it should be advanced
 	passengers.erase(tmpPassengerIter);
 }
 string		trip::getPassengerId(int _passengerCntr){

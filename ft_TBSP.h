@@ -607,8 +607,8 @@ int	disaggregateDeterministicAssignment(int _iter, int _timeBuff, int _numThread
 	tmpNumPaths = 0;
         startTime = clock()*1.0/CLOCKS_PER_SEC;
 
-        omp_set_dynamic(0);
-        omp_set_num_threads(numThreads);
+//        omp_set_dynamic(0);
+//        omp_set_num_threads(numThreads);
 //        cout <<"getNumThreads = "<<omp_get_num_threads()<<endl;
 
         #pragma omp parallel for
@@ -619,7 +619,7 @@ int	disaggregateDeterministicAssignment(int _iter, int _timeBuff, int _numThread
 		passenger*			passengerPntr;
 		map<string,passenger*>::iterator	tmpPassengerIter;
 
-		threadId = omp_get_thread_num();
+//		threadId = omp_get_thread_num();
 		tmpPassengerIter = passengerSet.begin();
 		advance(tmpPassengerIter, k);
 		if(tmpPassengerIter==passengerSet.end())	continue;

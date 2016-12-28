@@ -24,23 +24,27 @@ limitations under the License.
 
 #include <time.h>
 #include <stdlib.h>
+
+
+
+
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-int			forwardTBHP(string _origin, double _PDT, int _timeBuffer, int _mode){
-	int						i, j, numIterations, permanentLabel, tmpTransferStop, tmpAccessType;
-	int						tmpNumAccess, tmpNumTransfers, tmpSeqNum, tmpMaxSeq;
+int	forwardTBHP(string _origin, double _PDT, int _timeBuffer, int _mode){
+	int					i, j, numIterations, permanentLabel, tmpTransferStop, tmpAccessType;
+	int					tmpNumAccess, tmpNumTransfers, tmpSeqNum, tmpMaxSeq;
 	double					tmpCurrentLabel, tmpEarliestArrival, tmpOldLabel, tmpNewLabel, tmpNewCost, tmpNonWalkLabel;
 	double					tmpAccessTime, tmpTransferTime, tmpNewDeparture, tmpNewArrival, tmpInVehTime, tmpWaitingTime;
 	string					buf, tmpStr, tmpQueuvalue, tmpCurrentStop, tmpNewStop, tmpAccessibleTrips, tmpTrip, tmpCurrentMode, tmpNewMode;
 	char					chr[99];
-	vector<string>			tokens;
+	vector<string>		tokens;
 	list<taz*>::iterator	tmpTazListIter;
-	taz*					tmpTazPntr;
+	taz*			tmpTazPntr;
 	list<stop*>::iterator	tmpStopListIter;
-	stop*					tmpStopPntr;
+	stop*			tmpStopPntr;
 	list<trip*>::iterator	tmpTripListIter;
-	trip*					tmpTripPntr;
+	trip*			tmpTripPntr;
 	priority_queue<string>	stopQueue;
 
 	//Initialization
@@ -76,19 +80,19 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer, int _mode){
 		tmpNewLabel = tmpNewCost;
 		tmpNewArrival = _PDT + tmpAccessTime;
 		stopSet[tmpNewStop]->forwardStrategyUpdate(tmpNewLabel, tmpNewArrival, "Access", _origin, tmpNewCost, -101);
-        sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
-        tmpQueuvalue = string(chr);
-        tmpStr.resize(6-tmpQueuvalue.length(),'0');
+                sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
+                tmpQueuvalue = string(chr);
+                tmpStr.resize(6-tmpQueuvalue.length(),'0');
 		tmpQueuvalue = tmpStr + tmpQueuvalue + tmpNewStop;
 		stopQueue.push(tmpQueuvalue);
-    }
+    }   //YZ:calculate and store all the values related to access links from the origin TAZ's centroid to the all the stops in the TAZ. one may face many stop choices in the origin TAZ, this part find the probability of all the choices
 
-	//Labeling loop
+	//YZ:Labeling loop
 	numIterations = 0;
 	while(stopQueue.size()>0){
 		tmpStr = stopQueue.top();
 		stopQueue.pop();
-		tmpCurrentStop = tmpStr.substr(6,99);
+		tmpCurrentStop = tmpStr.substr(6,99); // pass tmpNewStop to
 		tmpStopPntr = NULL;
 		tmpStopPntr = stopSet[tmpCurrentStop];
 		tmpCurrentLabel = tmpStopPntr->getStrategyLabel();
@@ -123,11 +127,11 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer, int _mode){
 				if(tmpNewLabel < 999 && tmpNewLabel > 0){
 					tmpNewArrival = tmpEarliestArrival + tmpTransferTime;
 					stopSet[tmpNewStop]->forwardStrategyUpdate(tmpNewLabel, tmpNewArrival, "Transfer", tmpCurrentStop, tmpNewCost, -101);
-                    sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
-                    tmpQueuvalue = string(chr);
-                    tmpStr.resize(6-tmpQueuvalue.length(),'0');
-                    tmpQueuvalue = tmpStr + tmpQueuvalue + tmpNewStop;
-                    stopQueue.push(tmpQueuvalue);
+                                        sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
+                                        tmpQueuvalue = string(chr);
+                                        tmpStr.resize(6-tmpQueuvalue.length(),'0');
+                                        tmpQueuvalue = tmpStr + tmpQueuvalue + tmpNewStop;
+                                        stopQueue.push(tmpQueuvalue);
 				}
 			}
 		}
@@ -159,7 +163,7 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer, int _mode){
 				tmpNewDeparture = tmpTripPntr->getSchDeparture(tmpSeqNum);
 				tmpInVehTime = tmpNewArrival - tmpNewDeparture;  
 				tmpWaitingTime = tmpNewDeparture - tmpEarliestArrival;
-                if(tmpCurrentMode=="Transfer" || tmpCurrentMode.substr(0,1)=="t"){
+                                if(tmpCurrentMode=="Transfer" || tmpCurrentMode.substr(0,1)=="t"){
 					tmpNewCost = tmpCurrentLabel + tmpInVehTime +       waitingEqv * tmpWaitingTime + 60.0*fare/VOT + transferPenalty;
 				}else{
 					tmpNewCost = tmpCurrentLabel + tmpInVehTime + scheduleDelayEqv * tmpWaitingTime + 60.0*fare/VOT;
@@ -178,12 +182,12 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer, int _mode){
 					cout <<"Error - Negative Label - 2"<<endl;
 				}
 				if(tmpNewLabel < 999 && tmpNewLabel > 0){
-					stopSet[tmpNewStop]->forwardStrategyUpdate(tmpNewLabel, tmpNewArrival, tmpTrip, tmpCurrentStop, tmpNewCost, tmpNewDeparture);
-                    sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
-                    tmpQueuvalue = string(chr);
-                    tmpStr.resize(6-tmpQueuvalue.length(),'0');
-                    tmpQueuvalue = tmpStr + tmpQueuvalue + tmpNewStop;
-                    stopQueue.push(tmpQueuvalue);
+				stopSet[tmpNewStop]->forwardStrategyUpdate(tmpNewLabel, tmpNewArrival, tmpTrip, tmpCurrentStop, tmpNewCost, tmpNewDeparture);
+                                sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
+                                tmpQueuvalue = string(chr);
+                                tmpStr.resize(6-tmpQueuvalue.length(),'0');
+                                tmpQueuvalue = tmpStr + tmpQueuvalue + tmpNewStop;
+                                stopQueue.push(tmpQueuvalue);
 				}
 			}
 			tmpTripPntr->setTripUsedBefore(0);
@@ -223,8 +227,8 @@ int			forwardTBHP(string _origin, double _PDT, int _timeBuffer, int _mode){
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 int			backwardTBHP(string _destination, double _PAT, int _timeBuffer, int _mode){
-	int						i, j, numIterations, permanentLabel, tmpTransferStop, tmpAccessType;
-	int						tmpNumAccess, tmpNumTransfers, tmpSeqNum;
+	int					i, j, numIterations, permanentLabel, tmpTransferStop, tmpAccessType;
+	int					tmpNumAccess, tmpNumTransfers, tmpSeqNum;
 	double					tmpCurrentLabel, tmpLatestDeparture, tmpEarliestDeparture, tmpOldLabel, tmpNewLabel, tmpNewCost, tmpNonWalkLabel;
 	double					tmpAccessTime, tmpTransferTime, tmpNewDeparture, tmpNewArrival, tmpInVehTime, tmpWaitingTime;
 	string					buf, tmpStr, tmpQueuvalue, tmpCurrentStop, tmpNewStop, tmpAccessibleTrips, tmpTrip, tmpCurrentMode, tmpNewMode;
@@ -271,8 +275,8 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer, int _mode)
 		tmpNewDeparture = _PAT - tmpAccessTime;
 		stopSet[tmpNewStop]->backwardStrategyUpdate(tmpNewLabel, tmpNewDeparture, "Egress", _destination, tmpNewCost, -101);
 		sprintf(chr,"%d",int(999999-tmpNewLabel*1000));
-        tmpQueuvalue = string(chr);
-        tmpStr.resize(6-tmpQueuvalue.length(),'0');
+                tmpQueuvalue = string(chr);
+                tmpStr.resize(6-tmpQueuvalue.length(),'0');
 		tmpQueuvalue = tmpStr + tmpQueuvalue + tmpNewStop;
 		stopQueue.push(tmpQueuvalue);
 	}
@@ -352,7 +356,7 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer, int _mode)
 				tmpNewDeparture = tmpTripPntr->getSchDeparture(j);
 				tmpNewArrival = tmpTripPntr->getSchArrival(tmpSeqNum);
 				tmpInVehTime = tmpNewArrival - tmpNewDeparture;
-                tmpWaitingTime = tmpLatestDeparture - tmpNewArrival;
+                                tmpWaitingTime = tmpLatestDeparture - tmpNewArrival;
 				if(tmpCurrentMode=="Transfer" || tmpCurrentMode.substr(0,1)=="t"){
 					tmpNewCost = tmpCurrentLabel + tmpInVehTime +       waitingEqv * tmpWaitingTime + 60.0*fare/VOT + transferPenalty;
 				}else{
@@ -418,40 +422,41 @@ int			backwardTBHP(string _destination, double _PAT, int _timeBuffer, int _mode)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 string		getForwardElementaryPath(string _destination, double _PAT){
-	int					tmpStrLen;
+	int				tmpStrLen;
 	string				tmpStr, tmpIn, tmpCurrentStop, tmpNewStop, tmpCurrentTrip, tmpAccessLink, tmpTransferLink, tmpLastTrip, tmpFirstTrip, tmpFirstStop;
 	double				tmpDepartureTime, tmpStartTime, tmpEndTime;
 	string				buf, tmpBoardingStops, tmpAlightingStops, tmpTrips, tmpWalkingTimes, tmpPath;	
-	vector<string>		tokens;
+	vector<string>		        tokens;
 	char				chr[99];
 
-	tmpIn = tazSet[_destination]->getForwardAssignedAlternative(1800);
+	tmpIn = tazSet[_destination]->getForwardAssignedAlternative(1800);  // YZ:'1800' here should be '_PAT', though actually the value of _PAT is 1800 for the time being
 	if(tmpIn=="-101"){
-		//cout <<"C1"<<endl;
+		cout <<"F1"<<'\t';
 		return "-101";
 	}
 	buf.clear();
 	tokens.clear();
 	stringstream	ss(tmpIn);
-	while (ss >> buf){
+	while (ss >> buf){   
 		tokens.push_back(buf);
 	}
-	tmpCurrentStop = tokens[0];
-	tmpEndTime = atof(tokens[1].c_str())/100;
+	tmpCurrentStop = tokens[0];   // tazPredecessors
+	tmpEndTime = atof(tokens[1].c_str())/100;   // tazArrivals
 	tmpAccessLink = _destination + "," + tmpCurrentStop;
-    sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
-    tmpIn = string(chr);
-    tmpStrLen = tmpIn.length();
+        sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
+        tmpIn = string(chr);
+        tmpStrLen = tmpIn.length();
 	tmpWalkingTimes = tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
-	if(tmpStrLen<2)				tmpWalkingTimes = tmpWalkingTimes + "0";
+	if(tmpStrLen<2)			tmpWalkingTimes = tmpWalkingTimes + "0";
 	tmpWalkingTimes = tmpWalkingTimes + tmpIn.substr(max(0,tmpStrLen-2),2);
-	tmpDepartureTime = tmpEndTime - accessTimes[tmpAccessLink];
+	tmpDepartureTime= tmpEndTime - accessTimes[tmpAccessLink];
 	tmpLastTrip = "Egress";
-	
-	while(1){
+	// YZ:find the access from the TAZ centroid(which is the _destination) to the preferred stop
+        
+	while(1){  // YZ:search from back to front to find the stop series
 		tmpIn = stopSet[tmpCurrentStop]->getForwardAssignedAlternative(tmpDepartureTime, tmpLastTrip);
 		if(tmpIn=="-101"){
-			//cout <<"C2"<<endl;
+			//cout <<"F2"<<'\t';
 			return "-101";
 		}
 		buf.clear();
@@ -470,15 +475,15 @@ string		getForwardElementaryPath(string _destination, double _PAT){
 		}
 		if(tmpCurrentTrip=="Access"){
 			tmpAccessLink = tmpNewStop + "," + tmpCurrentStop;		
-            sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
-            tmpIn = string(chr);
+                        sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
+                        tmpIn = string(chr);
 			tmpStrLen = tmpIn.length();
 			tmpWalkingTimes = tmpIn.substr(max(0,tmpStrLen-2),2) + "," + tmpWalkingTimes;
 			if(tmpStrLen<2)				tmpWalkingTimes = "0" + tmpWalkingTimes;
 			tmpWalkingTimes = tmpIn.substr(0,max(0,tmpStrLen-2)) + "." + tmpWalkingTimes;
-            tmpStartTime = tripSet[tmpFirstTrip]->getSchDepartureByStop(tmpFirstStop) - accessTimes[tmpAccessLink];
-            sprintf(chr,"%d",int(100*tmpStartTime));
-            tmpStr = string(chr);
+                        tmpStartTime = tripSet[tmpFirstTrip]->getSchDepartureByStop(tmpFirstStop) - accessTimes[tmpAccessLink]; // YZ: find the passenger's start time
+                        sprintf(chr,"%d",int(100*tmpStartTime));
+                        tmpStr = string(chr);
 			tmpStrLen = tmpStr.length();
 			tmpPath = tmpStr.substr(0,max(0,tmpStrLen-2)) + ".";
 			if(tmpStrLen<2)			tmpPath = tmpPath + "0";
@@ -494,8 +499,8 @@ string		getForwardElementaryPath(string _destination, double _PAT){
 			return tmpPath;
 		}else if(tmpCurrentTrip=="Transfer"){
 			tmpTransferLink = tmpCurrentStop + "," + tmpNewStop;
-            sprintf(chr,"%d",int(100*transferTimes[tmpTransferLink]));
-            tmpIn = string(chr);
+                        sprintf(chr,"%d",int(100*transferTimes[tmpTransferLink]));
+                        tmpIn = string(chr);
 			tmpStrLen = tmpIn.length();
 			tmpWalkingTimes = tmpIn.substr(max(0,tmpStrLen-2),2) + "," + tmpWalkingTimes;
 			if(tmpStrLen<2)				tmpWalkingTimes = "0" + tmpWalkingTimes;
@@ -518,20 +523,20 @@ string		getForwardElementaryPath(string _destination, double _PAT){
 		}
 		tmpCurrentStop = tmpNewStop;
 	}
-	//cout <<"C3"<<endl;
+	cout <<"F3"<<'\t';
 	return "-101";
 }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 string		getBackwardElementaryPath(string _origin, double _PDT){
-	int					i, tmpStrLen;
+	int				i, tmpStrLen;
 	string				tmpStr, tmpIn, tmpCurrentStop, tmpNewStop, tmpCurrentTrip, tmpAccessLink, tmpTransferLink, tmpLastTrip, tmpFirstTrip, tmpFirstStop;
 	double				tmpArrivalTime, tmpStartTime, tmpDepartureTime;
 	string				buf, tmpBoardingStops, tmpAlightingStops, tmpTrips, tmpWalkingTimes, tmpPath;	
-	vector<string>		tokens;
+	vector<string>		        tokens;
 	char				chr[99];
 
 	tmpIn = tazSet[_origin]->getBackwardAssignedAlternative(0);
 	if(tmpIn=="-101"){
-		//cout <<"C1"<<endl;
+		cout <<"B1"<<'\t';
 		return "-101";
 	}
 	buf.clear();
@@ -542,17 +547,17 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 	}
 	tmpCurrentStop = tokens[0];
 	tmpStartTime = atof(tokens[1].c_str())/100;
-    sprintf(chr,"%d",int(100*tmpStartTime));
-    tmpStr = string(chr);
-    tmpStrLen = tmpStr.length();
+        sprintf(chr,"%d",int(100*tmpStartTime));
+        tmpStr = string(chr);
+        tmpStrLen = tmpStr.length();
 	tmpPath = tmpStr.substr(0,max(0,tmpStrLen-2)) + ".";
 	if(tmpStrLen<2)			tmpPath = tmpPath + "0";
 	tmpPath = tmpPath + tmpStr.substr(max(0,tmpStrLen-2),2);
-    
-    tmpAccessLink = _origin + "," + tmpCurrentStop;
+ 
+        tmpAccessLink = _origin + "," + tmpCurrentStop;
 	sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
-    tmpIn = string(chr);
-    tmpStrLen = tmpIn.length();
+        tmpIn = string(chr);
+        tmpStrLen = tmpIn.length();
 	tmpWalkingTimes = tmpWalkingTimes + tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
 	if(tmpStrLen<2)			tmpWalkingTimes = tmpWalkingTimes + "0";
 	tmpWalkingTimes = tmpWalkingTimes + tmpIn.substr(max(0,tmpStrLen-2),2);
@@ -561,12 +566,11 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 	if(tmpCurrentStop.substr(0,1)=="s"){
 		tmpFirstStop = tmpCurrentStop;
 	}
-	
 	i = 0;
 	while(1){
 		tmpIn = stopSet[tmpCurrentStop]->getBackwardAssignedAlternative(tmpArrivalTime, tmpLastTrip);
 		if(tmpIn=="-101"){
-			//cout <<"C2"<<endl;
+			//cout <<"B2"<<'\t';
 			return "-101";
 		}
 		i++;
@@ -583,20 +587,22 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 			tmpFirstTrip = tmpCurrentTrip;
 		}
 		if(i==1){
-            tmpStartTime = tripSet[tmpFirstTrip]->getSchDepartureByStop(tmpFirstStop) - accessTimes[tmpAccessLink];
-            sprintf(chr,"%d",int(100*tmpStartTime));
-			tmpStr = string(chr);
-            tmpStrLen = tmpStr.length();
-			tmpPath = tmpStr.substr(0,max(0,tmpStrLen-2)) + ".";
-            if(tmpStrLen<2)			tmpPath = tmpPath + "0";
-			tmpPath = tmpPath + tmpStr.substr(max(0,tmpStrLen-2),2);
+                tmpStartTime = tripSet[tmpFirstTrip]->getSchDepartureByStop(tmpFirstStop) - accessTimes[tmpAccessLink];
+                sprintf(chr,"%d",int(100*tmpStartTime));
+             
+                tmpIn = string(chr);    
+                tmpStrLen = tmpIn.length();       //YZ: revised for longer waiting time
+		tmpPath = tmpIn.substr(0,max(0,tmpStrLen-2)) + "."; //YZ: revised for longer waiting time
+		//cout <<tmpStartTime<<"\t"<<chr<<"\t"<<tmpIn<<"\t"<<tmpStrLen<<"\t"<<tmpPath<<"\t";
+                if(tmpStrLen<2)			tmpPath = tmpPath + "0";
+		tmpPath = tmpPath + tmpIn.substr(max(0,tmpStrLen-2),2);  //YZ: revised for longer waiting time
 		}
 		if(tmpCurrentTrip=="Egress"){
 			tmpAccessLink = tmpNewStop + "," + tmpCurrentStop;		
 			sprintf(chr,"%d",int(100*accessTimes[tmpAccessLink]));
-            tmpIn = string(chr);
-            tmpStrLen = tmpIn.length();
-            tmpWalkingTimes = tmpWalkingTimes + "," + tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
+                        tmpIn = string(chr);
+                        tmpStrLen = tmpIn.length();
+                        tmpWalkingTimes = tmpWalkingTimes + "," + tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
 			if(tmpStrLen<2)					tmpWalkingTimes = tmpWalkingTimes + "0";
 			tmpWalkingTimes = tmpWalkingTimes + tmpIn.substr(max(0,tmpStrLen-2),2);
 
@@ -612,8 +618,8 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 		}else if(tmpCurrentTrip=="Transfer"){
 			tmpTransferLink = tmpCurrentStop + "," + tmpNewStop;
 			sprintf(chr,"%d",int(100*transferTimes[tmpTransferLink]));
-            tmpIn = string(chr);
-            tmpStrLen = tmpIn.length();
+                        tmpIn = string(chr);
+                        tmpStrLen = tmpIn.length();
 			tmpWalkingTimes = tmpWalkingTimes + "," + tmpIn.substr(0,max(0,tmpStrLen-2)) + ".";
 			if(tmpStrLen<2)					tmpWalkingTimes = tmpWalkingTimes + "0";
 			tmpWalkingTimes = tmpWalkingTimes + tmpIn.substr(max(0,tmpStrLen-2),2);
@@ -635,49 +641,48 @@ string		getBackwardElementaryPath(string _origin, double _PDT){
 		}
 		tmpCurrentStop = tmpNewStop;
 	}
-	//cout <<"C3"<<endl;
+	cout <<"B3"<<'\t';
 	return "-101";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads){
-	int									k, numThreads, tmpNumPassengers, tmpNumPaths;
+	int								k, numThreads, tmpNumPassengers, tmpNumPaths;
 	double								startTime, endTime, cpuTime;
-
 	numThreads = _numThreads;
 	parallelizeStops(numThreads);
 	parallelizeTazs(numThreads);
 	parallelizeTrips(numThreads);
-
+        
 	cout <<"**************************** GENERATING PATHS ****************************"<<endl;
 	tmpNumPassengers = passengerSet.size();
 	tmpNumPaths = 0;
-    startTime = clock()*1.0/CLOCKS_PER_SEC;
-	
-	omp_set_dynamic(0);
-    omp_set_num_threads(numThreads);
+        startTime = clock()*1.0/CLOCKS_PER_SEC;	
+//    omp_set_dynamic(0);
+//    omp_set_num_threads(numThreads);
 //    cout <<"getNumThreads = "<<omp_get_num_threads()<<endl;
 
     #pragma omp parallel for //num_threads(numThreads)
 	for(k=0;k<tmpNumPassengers;k++){
-		int					                threadId, tmpNumIterations, tmpTourHalf, tmpStatus, m, tmpMode;
+		int					        threadId, tmpNumIterations, tmpTourHalf, tmpStatus, m, tmpMode;
 		string				                tmpPassengerId, tmpOriginTaz, tmpDestinationTaz, tmpPath;
 		double				                tmpPDT, tmpPAT;
 		passenger*			                passengerPntr;
-		map<string,passenger*>::iterator	tmpPassengerIter;
+		map<string,passenger*>::iterator	        tmpPassengerIter;
 
-		threadId = omp_get_thread_num();
+//		threadId = omp_get_thread_num();
 		tmpPassengerIter = passengerSet.begin();
 		advance(tmpPassengerIter, k);
 		if(tmpPassengerIter==passengerSet.end())	continue;
-
 		tmpPassengerId = (*tmpPassengerIter).first;
 		passengerPntr = NULL;
 		passengerPntr = passengerSet[tmpPassengerId];
 		tmpOriginTaz =passengerPntr->getOriginTAZ();
 		tmpDestinationTaz = passengerPntr->getDestinationTAZ();
-		if(tazSet.find(tmpOriginTaz)==tazSet.end() || tazSet.find(tmpDestinationTaz)==tazSet.end())	continue;
-		if(tmpOriginTaz==tmpDestinationTaz)	continue;
-
+		if(tazSet.find(tmpOriginTaz)==tazSet.end() || tazSet.find(tmpDestinationTaz)==tazSet.end()){	// YZ:skip those passenger whose OD pairs are not included in the TAZ
+                    continue;}
+		if(tmpOriginTaz==tmpDestinationTaz){    //YZ:ship those passengers whose O and D are the same	
+                    continue;
+                }
 		tmpStatus = passengerPntr->getPassengerStatus();
         if(_iter>1){
             if(tmpStatus==5){
@@ -695,7 +700,7 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 		if(tmpTourHalf==1){
 			tmpNumIterations = backwardTBHP(tmpDestinationTaz, tmpPAT, _timeBuff, tmpMode);
 			m = 0;
-			while(1){
+			while(1){  //  YZ:check
 				tmpPath = getBackwardElementaryPath(tmpOriginTaz, tmpPDT);
 				m++;
 				if(tmpPath!="-101" || m>1000){
@@ -731,11 +736,13 @@ int		disaggregateStochasticAssignment(int _iter, int _timeBuff, int _numThreads)
 	return tmpNumPaths;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassengersFlag, int _numThreads){
-	int									k, numThreads, tmpNumPassengers, tmpNumPaths;
+vector<int> pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassengersFlag, int _numThreads){
+	int								k, numThreads, tmpNumPassengers, tmpNumPaths;
 	double								startTime, endTime, cpuTime;
-    
-    map<string,int>						tmpPathSet;
+        int cntr1,cntr3,cntr;
+        cntr1=0;cntr3=0;cntr=0;
+        vector<int> retval;
+        map<string,int>					tmpPathSet;
 	map<string,int>::iterator			tmpPathSetIter;
 
 	numThreads = _numThreads;
@@ -744,16 +751,16 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
 	parallelizeTrips(numThreads);
 
     ofstream    logFile;
-    logFile.open("ft_log.txt");
+    logFile.open("C:/Users/zhan4879/Desktop/Input Data/ft_log.txt");
     logFile <<"Started assignment at: "<<getTime()<<endl;
 
     ofstream	outFile;
     if(_printPassengersFlag==1){
         if(_iter==1){
-            outFile.open("ft_output_choiceSet.dat");
-            //outFile <<"passengerId\torigin\tdestination\tnumOfOccur\tpath"<<endl;
+            outFile.open("C:/Users/zhan4879/Desktop/Input Data/ft_output_choiceSet.dat");
+            outFile <<"passengerId\torigin\tdestination\tnumOfOccur\tpath"<<endl;
         }else{
-            outFile.open("ft_output_choiceSet.dat",ofstream::app);
+            outFile.open("C:/Users/zhan4879/Desktop/Input Data/ft_output_choiceSet.dat",ofstream::app);
             outFile <<"ITERATION "<<_iter<<endl;
         }
     }
@@ -763,19 +770,19 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
 	tmpNumPassengers = passengerSet.size();
 	tmpNumPaths = 0;
         
-    omp_set_dynamic(0);
-    omp_set_num_threads(numThreads);
+//    omp_set_dynamic(0);
+//    omp_set_num_threads(numThreads);
 //    cout <<"getNumThreads = "<<omp_get_num_threads()<<endl;
 
-    #pragma omp parallel for //num_threads(numThreads)
+//   #pragma omp parallel for //num_threads(numThreads)
 	for(k=0;k<tmpNumPassengers;k++){
-		int									threadId, tmpNumIterations, tmpTourHalf, tmpStatus, n, tmpMode;
+		int								threadId, tmpNumIterations, tmpTourHalf, tmpStatus, n, tmpMode;
 		string								tmpPassengerId, tmpOriginTaz, tmpDestinationTaz, tmpPath;
 		double								tmpPDT, tmpPAT;
 		passenger*							passengerPntr;
 		map<string,passenger*>::iterator	tmpPassengerIter;
 
-		threadId = omp_get_thread_num();;
+//		threadId = omp_get_thread_num();
 		tmpPassengerIter = passengerSet.begin();
 		advance(tmpPassengerIter, k);
 		if(tmpPassengerIter==passengerSet.end())	continue;
@@ -783,11 +790,13 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
 		tmpPassengerId = (*tmpPassengerIter).first;
 		passengerPntr = NULL;
 		passengerPntr = passengerSet[tmpPassengerId];
-		tmpOriginTaz =passengerPntr->getOriginTAZ();
+		tmpOriginTaz = passengerPntr->getOriginTAZ();
 		tmpDestinationTaz = passengerPntr->getDestinationTAZ();
-		if(tazSet.find(tmpOriginTaz)==tazSet.end() || tazSet.find(tmpDestinationTaz)==tazSet.end())	continue;
+		if(tazSet.find(tmpOriginTaz)==tazSet.end() || tazSet.find(tmpDestinationTaz)==tazSet.end())	{                
+                    continue;   
+                }
 		if(tmpOriginTaz==tmpDestinationTaz)	continue;
-
+                
 		tmpStatus = passengerPntr->getPassengerStatus();
         if(_iter>1){
             if(tmpStatus==5){
@@ -816,8 +825,10 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
 		tmpPathSet.clear();
         if (tmpTourHalf==1){
             tmpNumIterations = backwardTBHP(tmpDestinationTaz, tmpPAT, _timeBuff, tmpMode);
-            for (n=1;n<=1000;n++){
-                tmpPath = getBackwardElementaryPath(tmpOriginTaz, tmpPDT);
+            if (tazSet[(passengerPntr->passengerOriginTAZ)]->tazStrategyLebel==999999) {cntr1++;continue;};// YZ:count how many passengers' OD are not labeled
+            //condition sit 4
+            for (n=1;n<=1000;n++){  //why iterations?
+                tmpPath = getBackwardElementaryPath(tmpOriginTaz, tmpPDT); //YZ:tmpPDT is not in use, can be ignored
                 if(tmpPath!="-101"){
                     tmpPathSetIter = tmpPathSet.find(tmpPath);
                     if (tmpPathSetIter==tmpPathSet.end())
@@ -825,11 +836,15 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
                     else{
                         tmpPathSet[tmpPath] = tmpPathSet[tmpPath] + 1;
                     }
-                    passengerPntr->addPaths(tmpPath);
+                    passengerPntr->addPaths(tmpPath);// YZ: add tmpPath to the PathSet of the passengers
                 }
+                else if (tmpPath=="-101"&&n==1000){cntr++;};
             }
-		}else{
+            //check if patheset empty
+		}
+        else{
             tmpNumIterations = forwardTBHP(tmpOriginTaz, tmpPDT, _timeBuff, tmpMode);
+            if (tazSet[(passengerPntr->passengerDestinationTAZ)]->tazStrategyLebel==999999) {cntr1++;continue;}//YZ:count how many passengers' OD are not labeled
             for (n=1;n<=1000;n++){
                 tmpPath = getForwardElementaryPath(tmpDestinationTaz, tmpPAT);
                 if(tmpPath!="-101"){
@@ -841,6 +856,7 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
                     }
                     passengerPntr->addPaths(tmpPath);
                 }
+                else if (tmpPath=="-101"&&n==1000){cntr++;};
             }
 		}
         
@@ -862,9 +878,10 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
         if(k%max(min(tmpNumPassengers/10,1000),10)==0){
             endTime = clock()*1.0/CLOCKS_PER_SEC;
             cpuTime = round(100 * (endTime - startTime))/100.0;
-			cout <<k<<" ( "<<tmpNumPaths<<" )\t/\t"<<tmpNumPassengers<<"\tpassengers assigned;\ttime elapsed:\t"<<cpuTime<<"\tseconds"<<endl;
+		cout <<k<<" ( "<<tmpNumPaths<<" )\t/\t"<<tmpNumPassengers<<"\tpassengers assigned;\ttime elapsed:\t"<<cpuTime<<"\tseconds"<<endl;
                     logFile <<k<<" ( "<<tmpNumPaths<<" )\t/\t"<<tmpNumPassengers<<"\tpassengers assigned;\ttime elapsed:\t"<<cpuTime<<"\tseconds"<<endl;
 		}
+        if (passengerPntr->pathSet.empty()) cntr3++;   // YZ:count no elementary path passengers
 	}
     endTime = clock()*1.0/CLOCKS_PER_SEC;
     cpuTime = round(100 * (endTime - startTime))/100.0;
@@ -875,6 +892,12 @@ int		pathBasedStochasticAssignment(int _iter, int _timeBuff, int _printPassenger
     }
     logFile <<"Finished assignment at: "<<getTime()<<endl;
     logFile.close();
-	return tmpNumPaths;
+    tmpNumPaths;
+    retval.push_back(tmpNumPaths);
+    retval.push_back(cntr1);
+    retval.push_back(cntr3);
+    retval.push_back(cntr);
+    return retval;
+    //return tmpNumPaths;
 }
 
